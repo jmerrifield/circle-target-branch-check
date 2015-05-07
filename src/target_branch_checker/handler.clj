@@ -55,7 +55,7 @@
                            :body}
         (prn "GH payload" action branch statuses-url repo-fullname)
         (cond 
-         (= action "opened")
+         (contains? #{"opened" "synchronized"} action)
          (let [{:keys [build_url outcome]} (last-circle-build repo-fullname branch)] 
            (prn "Creating status" action branch statuses-url repo-fullname build_url outcome)
            (post-status statuses-url (create-status outcome build_url branch))))
