@@ -21,13 +21,14 @@
 
 ;; (last-circle-build "change/fe" "master")
 
-(defn- create-status [failed build-url branch]
-  {:state (if failed "failure" "success")
-   :target_url build-url
-   :context "target-branch-checker"
-   :description (str "The target branch (" branch ") has a " (if failed "red" "green") " build")})
+(defn- create-status [outcome build-url branch]
+  (let [failed (not= outcome "success")]
+    {:state (if failed "failure" "success")
+     :target_url build-url
+     :context "target-branch-checker"
+     :description (str "The target branch (" branch ") has a " (if failed "red" "green") " build")}))
 
-;; (create-status true "http://example.org/builds/1" "master")
+;; (create-status "failed" "http://example.org/builds/1" "master")
 
 (defn- get-open-prs [owner repo base]
   (->
@@ -41,10 +42,6 @@
 
 ;; (get-open-prs "change" "fe" "master")
 
-(comment 
-  (doseq [{statuses-url :statuses_url} (get-open-prs "change" "fe" "master")]
-    (prn "PR" statuses-url)))
-
 (defroutes app-routes
   (GET "/" []  "Hello World")
 
@@ -56,16 +53,16 @@
         (prn "GH payload" action branch statuses-url repo-fullname)
         (cond 
          (= action "opened")
-         (let [{:keys [build_url failed]} (last-circle-build repo-fullname branch (env :circle-token))] 
-           (prn "Creating status" action branch statuses-url repo-fullname build_url failed)
-           (http/post statuses-url {:body (json/write-str (create-status failed build_url branch))
+         (let [{:keys [build_url outcome]} (last-circle-build repo-fullname branch (env :circle-token))] 
+           (prn "Creating status" action branch statuses-url repo-fullname build_url outcome)
+           (http/post statuses-url {:body (json/write-str (create-status outcome build_url branch))
                                     :headers {"Authorization" (str "token " (env :gh-token))}})))
         {:status 200})
 
-  (POST "/payload/circle" {{{:keys [branch username reponame failed build_url]} :payload} :body}
-        (prn "Circle payload" branch username reponame failed build_url)
-        (doseq [{statuses-url :statuses_url} (get-open-prs username reponame branch (env :gh-token))]
-          (http/post statuses-url {:body (json/write-str (create-status failed build_url branch))
+  (POST "/payload/circle" {{{:keys [branch username reponame outcome build_url]} :payload} :body}
+        (prn "Circle payload" branch username reponame outcome build_url)
+        (doseq [{statuses-url :statuses_url} (get-open-prs username reponame branch)]
+          (http/post statuses-url {:body (json/write-str (create-status outcome build_url branch))
                                    :headers {"Authorization" (str "token " (env :gh-token))}}))
         {:status 200})
 
