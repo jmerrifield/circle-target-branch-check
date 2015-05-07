@@ -46,7 +46,7 @@
     (prn "PR" statuses-url)))
 
 (defroutes app-routes
-  (GET "/" "Hello World")
+  (GET "/" []  "Hello World")
 
   (POST "/payload/github" {{:keys [action] 
                             {{branch :ref} :base} :pull_request
