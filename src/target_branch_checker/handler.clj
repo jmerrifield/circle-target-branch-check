@@ -49,9 +49,8 @@
 (defroutes app-routes
   (GET "/" []  "Hello World")
 
-  (POST "/payload/github" {{:keys [action] 
-                            {{branch :ref} :base} :pull_request
-                            {statuses-url :statuses_url} :pull_request
+  (POST "/payload/github" {{action :action 
+                            {{branch :ref} :base statuses-url :statuses_url} :pull_request
                             {repo-fullname :full_name} :repository} 
                            :body}
         (prn "GH payload" action branch statuses-url repo-fullname)
