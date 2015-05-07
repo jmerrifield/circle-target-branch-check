@@ -53,7 +53,7 @@
         (prn "GH payload" action branch statuses-url repo-fullname)
         (cond 
          (= action "opened")
-         (let [{:keys [build_url outcome]} (last-circle-build repo-fullname branch (env :circle-token))] 
+         (let [{:keys [build_url outcome]} (last-circle-build repo-fullname branch)] 
            (prn "Creating status" action branch statuses-url repo-fullname build_url outcome)
            (http/post statuses-url {:body (json/write-str (create-status outcome build_url branch))
                                     :headers {"Authorization" (str "token " (env :gh-token))}})))
