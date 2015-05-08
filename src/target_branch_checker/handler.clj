@@ -8,16 +8,26 @@
             [cemerick.url :refer [url]]
             [clojure.data.json :as json]))
 
-(defn- last-circle-build [repo-fullname branch]
+(defn- get-json [url get-opts]
   (->
-   (url "https://circleci.com/api/v1/project" repo-fullname "tree" branch)
-   str
-   (#(http/get (str %) {:headers {"Accept" "application/json"}
-                        :query-params {:circle-token (env :circle-token) :limit 1 :filter "completed"}}))
+   (str url)
+   (#(http/get % get-opts))
    deref
    :body
-   (#(json/read-str % :key-fn keyword))
-   first))
+   (#(json/read-str % :key-fn keyword))))
+
+(comment
+ (get-json 
+  (url "https://circleci.com/api/v1/project" "change/fe" "tree" "master")
+  {:headers {"Accept" "application/json"}
+   :query-params {:circle-token (env :circle-token) :limit 1 :filter "completed"}}))
+
+(defn- last-circle-build [repo-fullname branch]
+  (first 
+   (get-json
+    (url "https://circleci.com/api/v1/project" repo-fullname "tree" branch)
+    {:headers {"Accept" "application/json"}
+     :query-params {:circle-token (env :circle-token) :limit 1 :filter "completed"}})))
 
 ;; (last-circle-build "change/fe" "master")
 
@@ -31,14 +41,10 @@
 ;; (create-status "failed" "http://example.org/builds/1" "master")
 
 (defn- get-open-prs [owner repo base]
-  (->
+  (get-json
    (url "https://api.github.com/repos" owner repo "pulls")
-   str
-   (#(http/get % {:query-params {:state "open" :base base}
-                  :headers {"Authorization" (str "token " (env :gh-token))}}))
-   deref
-   :body
-   (#(json/read-str % :key-fn keyword))))
+   {:query-params {:state "open" :base base}
+    :headers {"Authorization" (str "token " (env :gh-token))}}))
 
 ;; (get-open-prs "change" "fe" "master")
 
