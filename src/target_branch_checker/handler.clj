@@ -59,19 +59,19 @@
                             {{branch :ref} :base statuses-url :statuses_url} :pull_request
                             {repo-fullname :full_name} :repository} 
                            :body}
-        (prn "GH payload" action branch statuses-url repo-fullname)
-        (cond 
-         (contains? #{"opened" "synchronize"} action)
-         (let [{:keys [build_url outcome]} (last-circle-build repo-fullname branch)] 
-           (prn "Creating status" action branch statuses-url repo-fullname build_url outcome)
-           (post-status statuses-url (create-status outcome build_url branch))))
-        {:status 200})
+    (prn "GH payload" action branch statuses-url repo-fullname)
+    (cond 
+     (contains? #{"opened" "synchronize"} action)
+     (let [{:keys [build_url outcome]} (last-circle-build repo-fullname branch)] 
+       (prn "Creating status" action branch statuses-url repo-fullname build_url outcome)
+       (post-status statuses-url (create-status outcome build_url branch))))
+    {:status 200})
 
   (POST "/payload/circle" {{{:keys [branch username reponame outcome build_url]} :payload} :body}
-        (prn "Circle payload" branch username reponame outcome build_url)
-        (doseq [{statuses-url :statuses_url} (get-open-prs username reponame branch)]
-          (post-status statuses-url (create-status outcome build_url branch)))
-        {:status 200})
+    (prn "Circle payload" branch username reponame outcome build_url)
+    (doseq [{statuses-url :statuses_url} (get-open-prs username reponame branch)]
+      (post-status statuses-url (create-status outcome build_url branch)))
+    {:status 200})
 
   (route/not-found "Not Found"))
 
