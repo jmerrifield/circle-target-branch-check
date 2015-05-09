@@ -6,6 +6,10 @@ When a CircleCI build completes, this looks for any open Pull Requests based off
 
 When a Pull Request is opened or pushed to, this asks CircleCI for the latest build for the PR's base branch, and posts a status to the PR.
 
+![success](success-pic.png)
+
+![failure](failure-pic.png)
+
 ## Setup
 
 ### Deploy
@@ -16,7 +20,7 @@ When a Pull Request is opened or pushed to, this asks CircleCI for the latest bu
 
 ### Github webhook
 
-* Create a Github webhook for the repo you wish to use. 
+* Create a Github webhook for the repo you wish to use.
 * Set the Payload URL to the deployed URL of this app, plus `/payload/github` (e.g. `http://myservice.example.com/payload/github`).
 * Set the webhook to send only events of type 'Pull Request'.
 
